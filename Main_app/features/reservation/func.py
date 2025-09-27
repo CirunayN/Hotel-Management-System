@@ -1,4 +1,4 @@
-from .data import Reservation
+from Main_app.core.data import Reservation
 from .repo import ReservationItem
 
 
@@ -37,3 +37,9 @@ class MainFunc:
 
     def delete(self, id_: int) -> None:
         self.repo.repo_delete(id_)
+
+    def search(self, data : Reservation):
+        id = data.id
+
+
+

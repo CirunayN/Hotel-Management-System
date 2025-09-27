@@ -1,4 +1,4 @@
-from .data import Reservation
+from Main_app.core.data import Reservation
 
 class ReservationItem():
     def __init__(self, conn):
@@ -15,37 +15,6 @@ class ReservationItem():
         price INTEGER NOT NULL
         )
         """)
-        # self.conn.execute("""
-        # CREATE TABLE IF NOT EXISTS app_data
-        # (
-        #     id
-        #     INTEGER
-        #     PRIMARY
-        #     KEY
-        #     AUTOINCREMENT,
-        #     name
-        #     TEXT
-        #     NOT
-        #     NULL,
-        #     number
-        #     TEXT
-        #     NOT
-        #     NULL,
-        #     room
-        #     TEXT,
-        #     checkin
-        #     TEXT,
-        #     checkout
-        #     TEXT,
-        #     status
-        #     TEXT,
-        #     price
-        #     INTEGER
-        #     NOT
-        #     NULL,
-        # )
-        # """)
-
 
     def get_list(self) -> list[Reservation]:
         stored: list[Reservation] = []

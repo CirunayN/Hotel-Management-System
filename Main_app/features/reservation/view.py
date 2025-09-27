@@ -1,4 +1,3 @@
-import sys
 from PyQt6.QtWidgets import (
     QHBoxLayout,
     QLabel,
@@ -11,12 +10,10 @@ from PyQt6.QtWidgets import (
     QDateEdit, QComboBox,
 )
 from PyQt6.QtCore import QDate
-from PyQt6.QtGui import QFont, QColor,QIcon
-import sqlite3
 from .repo import ReservationItem
-from Main_app.core.db import get_conn
+from Main_app.core.db import get_conn_to_reservastion
 from .func import MainFunc
-from .data import Reservation
+from Main_app.core.data import Reservation
 
 
 def build_view_reservation() -> QWidget:
@@ -29,7 +26,7 @@ class ViewReservation(QWidget):
         self.setObjectName("View Reservation")
 
         # wiring: core -> repo -> service
-        self.service = MainFunc(ReservationItem(get_conn()))
+        self.service = MainFunc(ReservationItem(get_conn_to_reservastion()))
 
         # --- UI ---
         root = QVBoxLayout(self)
@@ -38,6 +35,8 @@ class ViewReservation(QWidget):
         form_2 = QHBoxLayout()
         self.name_field = QLineEdit()
         self.name_field.setPlaceholderText("Name")
+        self.number_field = QLineEdit()
+        self.number_field.setPlaceholderText("Phone Number")
         # self.room_type = QLineEdit()
         # self.room_type.setPlaceholderText("Room Type")
         # self.layout.addWidget(QLabel("Room Type:"), 1, 0)
@@ -58,6 +57,8 @@ class ViewReservation(QWidget):
         self.btn_clear = QPushButton("Clear")
         form.addWidget(QLabel("Name: "))
         form.addWidget(self.name_field)
+        form.addWidget(QLabel("Phone Number: "))
+        form.addWidget(self.number_field)
         form.addWidget(QLabel("Room Type: "))
         form.addWidget(self.room_type)
         form.addWidget(QLabel("Check in: "))
@@ -67,16 +68,16 @@ class ViewReservation(QWidget):
         form.addWidget(QLabel("Status: "))
         form.addWidget(self.status)
         form.addWidget(QLabel("Price: "))
-        self.price.setFixedWidth(120)
-        self.price.setMinimumWidth(150)
+        # self.price.setFixedWidth(120)
+        # self.price.setMinimumWidth(150)
         form.addWidget(self.price)
         # form.addWidget(self.check_out, 1)
         form.addWidget(self.btn_add)
         form.addWidget(self.btn_clear)
         root.addLayout(form)
 
-        self.table = QTableWidget(0, 7)
-        self.table.setHorizontalHeaderLabels(["ID", "Name", "Room Type", "Check in", "Check_out", "Status","Price"])
+        self.table = QTableWidget(0, 8)
+        self.table.setHorizontalHeaderLabels(["ID", "Name","Phone Number", "Room Type", "Check in", "Check out", "Status","Price"])
         self.table.horizontalHeader().setStretchLastSection(True)
         root.addWidget(self.table)
 
@@ -95,14 +96,14 @@ class ViewReservation(QWidget):
         self.btn_clear.clicked.connect(self.clear_form)
         self.btn_refresh.clicked.connect(self.refresh)
         self.btn_delete.clicked.connect(self.on_delete)
-        self.table.cellDoubleClicked.connect(self.on_cell_double_clicked)
+        # self.table.cellDoubleClicked.connect(self.on_cell_double_clicked)
 
         self.refresh()
 
     def save(self):
         try:
             name = self.name_field.text().strip()
-            # room_type = self.room_type.text()
+            number = self.number_field.text()
             room_type = self.room_type.currentText()
             check_in = self.check_in.text()
             check_out = self.check_out.text()
@@ -112,12 +113,13 @@ class ViewReservation(QWidget):
 
             if self._editing_id is None:
                 # Create
-                self.service.create(name, room_type, check_in, check_out,status,price)
+                self.service.create(name,number, room_type, check_in, check_out,status,price)
             else:
                 # Update
                 data = Reservation(
                     id=self._editing_id,
                     name=name,
+                    number=number,
                     room_type=room_type,
                     check_in=check_in,
                     check_out=check_out,
@@ -145,24 +147,24 @@ class ViewReservation(QWidget):
 
 
 
-    def on_cell_double_clicked(self, row, _col):
-        # Load row into form for editingv
-        self._editing_id = int(self.table.item(row, 0).text())
-        self.name_field.setText(self.table.item(row, 1).text())
-        # self.room_type.setText(self.table.item(row, 2).text())
-        self.room_type.setCurrentText(self.table.item(row, 2).text())
-        self.check_in.setDate(self.table.item(row, 3).text())
-        self.check_out.setDate(self.table.item(row, 4).text())
-        # self.check_in.setDate(QDate.fromString(check_in_str, "yyyy-MM-dd"))
-        # self.check_out.setDate(QDate.fromString(check_out_str, "yyyy-MM-dd"))
-        self.status.setText(self.table.item(row, 5).text())
-        self.price.setValue(self.table.item(row, 6).text())
-        self.btn_add.setText("Save Changes")
+    # def on_cell_double_clicked(self, row, _col):
+    #     # Load row into form for editingv
+    #     self._editing_id = int(self.table.item(row, 0).text())
+    #     self.name_field.setText(self.table.item(row, 1).text())
+    #     self.number_field.setText(self.table.item(row, 2).text())
+    #     self.room_type.setCurrentText(self.table.item(row, 3).text())
+    #     self.check_in.setDate(self.table.item(row, 4).text())
+    #     self.check_out.setDate(self.table.item(row, 5).text())
+    #     # self.check_in.setDate(QDate.fromString(check_in_str, "yyyy-MM-dd"))
+    #     # self.check_out.setDate(QDate.fromString(check_out_str, "yyyy-MM-dd"))
+    #     self.status.setText(self.table.item(row, 6).text())
+    #     self.price.setValue(self.table.item(row, 7).text())
+    #     self.btn_add.setText("Save Changes")
 
     def clear_form(self):
         self._editing_id = None
         self.name_field.clear()
-        # self.room_type.clear()
+        self.number_field.clear()
         self.room_type.setCurrentIndex(0)
         self.check_in.clear()
         self.check_out.clear()
@@ -178,11 +180,12 @@ class ViewReservation(QWidget):
         for r, data in enumerate(items):
             self.table.setItem(r, 0, QTableWidgetItem(str(data.id)))
             self.table.setItem(r, 1, QTableWidgetItem(data.name))
-            self.table.setItem(r, 2, QTableWidgetItem(data.room_type))
-            self.table.setItem(r, 3, QTableWidgetItem(data.check_in))
-            self.table.setItem(r, 4, QTableWidgetItem(data.check_out))
-            self.table.setItem(r, 5, QTableWidgetItem(data.status))
-            self.table.setItem(r, 6, QTableWidgetItem(str(data.price)))
+            self.table.setItem(r, 2, QTableWidgetItem(str(data.number)))
+            self.table.setItem(r, 3, QTableWidgetItem(data.room_type))
+            self.table.setItem(r, 4, QTableWidgetItem(data.check_in))
+            self.table.setItem(r, 5, QTableWidgetItem(data.check_out))
+            self.table.setItem(r, 6, QTableWidgetItem(data.status))
+            self.table.setItem(r, 7, QTableWidgetItem(str(data.price)))
             self.table.resizeColumnsToContents()
 
 

@@ -19,6 +19,15 @@ class Room:
     price : int
     availability : str
 
+@dataclass
+class Logins:
+    user_id: int
+    user_name: str
+    password: str
+
+
+
+
     # @property
     # def price_display(self) -> str:
     #     return f"₱{self.price_cents/100:,.2f}"
