@@ -18,16 +18,12 @@ class MainFunc:
             raise ValueError("Checkin is required")
         if not data.check_out.strip():
             raise ValueError("Checkout is required")
-        if not data.status:
-            raise ValueError("Status is required")
-        if data.price < 0:
-            raise ValueError("Price must be provided")
 
     def list(self):
         return self.repo.get_list()
 
-    def create(self, name: str,number : str, room_type: str, check_in: str, check_out: str,status : str,price : int = "") -> Reservation:
-        data = Reservation(id=None, name=name,number=number, room_type=room_type, check_in=check_in, check_out=check_out,status=status,price=price)
+    def create(self, name: str,number : str, room_type: str, check_in: str, check_out: str,) -> Reservation:
+        data = Reservation(id=None, name=name,number=number, room_type=room_type, check_in=check_in, check_out=check_out)
         self.validate(data)
         return self.repo.repo_add(data)
 
@@ -37,9 +33,9 @@ class MainFunc:
 
     def delete(self, id_: int) -> None:
         self.repo.repo_delete(id_)
-
-    def search(self, data : Reservation):
-        id = data.id
+    #
+    # def search(self, data : Reservation):
+    #     id = data.id
 
 
 

@@ -9,15 +9,14 @@ class Reservation:
     room_type : str
     check_in: str
     check_out: str
-    status: str
-    price: int
+
 
 @dataclass
 class Room:
     room_id: int
     room_type : str
     price : int
-    availability : str
+    status : str
 
 @dataclass
 class Logins:

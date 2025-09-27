@@ -37,12 +37,8 @@ class ViewReservation(QWidget):
         self.name_field.setPlaceholderText("Name")
         self.number_field = QLineEdit()
         self.number_field.setPlaceholderText("Phone Number")
-        # self.room_type = QLineEdit()
-        # self.room_type.setPlaceholderText("Room Type")
-        # self.layout.addWidget(QLabel("Room Type:"), 1, 0)
         self.room_type = QComboBox()
         self.room_type.addItems(["Single", "Double", "Suite"])
-        # self.layout.addWidget(self.room_type, 1, 1)
         self.status = QLineEdit()
         self.status.setPlaceholderText("Status")
         self.price = QSpinBox()
@@ -65,19 +61,12 @@ class ViewReservation(QWidget):
         form.addWidget(self.check_in)
         form.addWidget(QLabel("Check_out: "))
         form.addWidget(self.check_out)
-        form.addWidget(QLabel("Status: "))
-        form.addWidget(self.status)
-        form.addWidget(QLabel("Price: "))
-        # self.price.setFixedWidth(120)
-        # self.price.setMinimumWidth(150)
-        form.addWidget(self.price)
-        # form.addWidget(self.check_out, 1)
         form.addWidget(self.btn_add)
         form.addWidget(self.btn_clear)
         root.addLayout(form)
 
-        self.table = QTableWidget(0, 8)
-        self.table.setHorizontalHeaderLabels(["ID", "Name","Phone Number", "Room Type", "Check in", "Check out", "Status","Price"])
+        self.table = QTableWidget(0, 6)
+        self.table.setHorizontalHeaderLabels(["ID", "Name","Phone Number", "Room Type", "Check in", "Check out"])
         self.table.horizontalHeader().setStretchLastSection(True)
         root.addWidget(self.table)
 
@@ -88,7 +77,7 @@ class ViewReservation(QWidget):
         actions.addWidget(self.btn_delete)
         root.addLayout(actions)
 
-        # state for editing
+
         self._editing_id: int | None = None
 
         # signals
@@ -107,13 +96,11 @@ class ViewReservation(QWidget):
             room_type = self.room_type.currentText()
             check_in = self.check_in.text()
             check_out = self.check_out.text()
-            status = self.status.text().strip()
-            price = self.price.value()
 
 
             if self._editing_id is None:
                 # Create
-                self.service.create(name,number, room_type, check_in, check_out,status,price)
+                self.service.create(name,number, room_type, check_in, check_out)
             else:
                 # Update
                 data = Reservation(
@@ -122,9 +109,7 @@ class ViewReservation(QWidget):
                     number=number,
                     room_type=room_type,
                     check_in=check_in,
-                    check_out=check_out,
-                    status=status,
-                    price=price
+                    check_out=check_out
                 )
                 self.service.update(data)
 
@@ -168,8 +153,6 @@ class ViewReservation(QWidget):
         self.room_type.setCurrentIndex(0)
         self.check_in.clear()
         self.check_out.clear()
-        self.status.clear()
-        self.price.clear()
         self.btn_add.setText("Add / Save")
         # self.check_out.setStyleSheet("")
         # self.check_out.setPlaceholderText("check_out (optional)")
@@ -184,8 +167,6 @@ class ViewReservation(QWidget):
             self.table.setItem(r, 3, QTableWidgetItem(data.room_type))
             self.table.setItem(r, 4, QTableWidgetItem(data.check_in))
             self.table.setItem(r, 5, QTableWidgetItem(data.check_out))
-            self.table.setItem(r, 6, QTableWidgetItem(data.status))
-            self.table.setItem(r, 7, QTableWidgetItem(str(data.price)))
             self.table.resizeColumnsToContents()
 
 
