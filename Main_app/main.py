@@ -19,7 +19,7 @@ def main():
     win = MainWindow()
     win.add_feature("Main Page",build_main_page)
     win.add_feature("Reservation", build_view_reservation)
-    win.resize(900, 560)
+    win.resize(1100, 660)
     win.show()
 
     sys.exit(app.exec())

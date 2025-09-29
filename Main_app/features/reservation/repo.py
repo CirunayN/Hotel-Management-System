@@ -13,6 +13,7 @@ class ReservationItem():
         checkout TEXT NOT NULL
         )
         """)
+        self.conn.commit()
 
     def get_list(self) -> list[Reservation]:
         stored: list[Reservation] = []
@@ -41,7 +42,7 @@ class ReservationItem():
 
     def repo_add(self, data: Reservation) -> Reservation:
         cur = self.conn.execute(
-            "INSERT INTO reservation(name,number,room_type,checkin,checkout,) VALUES (?,?,?,?,?)",
+            "INSERT INTO reservation(name,number,room_type,checkin,checkout) VALUES (?,?,?,?,?)",
             (data.name,data.number, data.room_type, data.check_in, data.check_out),
         )
         self.conn.commit()
@@ -58,7 +59,7 @@ class ReservationItem():
         assert data.id is not None
         self.conn.execute(
             "UPDATE reservation SET name=?,number=?, room_type=?, checkin=?, checkout=? WHERE id=?",
-            (data.name,data.number, data.room_type, data.check_in, data.check_out),
+            (data.name,data.number, data.room_type, data.check_in, data.check_out,data.id),
         )
         self.conn.commit()
         return data

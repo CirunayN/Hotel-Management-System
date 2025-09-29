@@ -27,6 +27,3 @@ class Logins:
 
 
 
-    # @property
-    # def price_display(self) -> str:
-    #     return f"₱{self.price_cents/100:,.2f}"

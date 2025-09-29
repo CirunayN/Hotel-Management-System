@@ -1,3 +1,4 @@
+from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import (
     QHBoxLayout,
     QLabel,
@@ -7,7 +8,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
     QTableWidgetItem, QSpinBox,
-    QDateEdit, QComboBox,
+    QDateEdit, QComboBox, QMessageBox,
 )
 from PyQt6.QtCore import QDate
 from .repo import ReservationItem
@@ -30,43 +31,67 @@ class ViewReservation(QWidget):
 
         # --- UI ---
         root = QVBoxLayout(self)
+        font = QFont("Arial", 16)
+        labelf = QFont("Arial", 14)
 
         form = QHBoxLayout()
         form_2 = QHBoxLayout()
         self.name_field = QLineEdit()
         self.name_field.setPlaceholderText("Name")
+        self.name_field.setFont(font)
         self.number_field = QLineEdit()
+        self.number_field.setFont(font)
         self.number_field.setPlaceholderText("Phone Number")
         self.room_type = QComboBox()
+        self.room_type.setFont(font)
         self.room_type.addItems(["Single", "Double", "Suite"])
-        self.status = QLineEdit()
-        self.status.setPlaceholderText("Status")
-        self.price = QSpinBox()
-        self.price.setRange(0, 10_000)
         self.check_in = QDateEdit()
+        self.check_in.setFont(font)
         self.check_in.setCalendarPopup(True)
         self.check_in.setDate(QDate.currentDate())
         self.check_out = QDateEdit()
+        self.check_out.setFont(font)
         self.check_out.setCalendarPopup(True)
         self.check_out.setDate(QDate.currentDate().addDays(1))
         self.btn_add = QPushButton("Add / Save")
+        self.btn_add.setFont(QFont("Arial", 14))
         self.btn_clear = QPushButton("Clear")
-        form.addWidget(QLabel("Name: "))
+        self.btn_clear.setFont(QFont("Arial", 14))
+        self.name_label = QLabel("Name: ")
+        self.name_label.setFont(labelf)
+        form.addWidget(self.name_label)
         form.addWidget(self.name_field)
-        form.addWidget(QLabel("Phone Number: "))
+        self.number_label = QLabel("Phone Number: ")
+        self.number_label.setFont(labelf)
+        form.addWidget(self.number_label)
         form.addWidget(self.number_field)
-        form.addWidget(QLabel("Room Type: "))
-        form.addWidget(self.room_type)
-        form.addWidget(QLabel("Check in: "))
-        form.addWidget(self.check_in)
-        form.addWidget(QLabel("Check_out: "))
-        form.addWidget(self.check_out)
+        self.room_type_label = QLabel("Room Type: ")
+        self.room_type_label.setFont(labelf)
+        form_2.addWidget(self.room_type_label)
+        form_2.addWidget(self.room_type)
+        check_in_label = QLabel("Check in: ")
+        check_in_label.setFont(labelf)
+        form_2.addWidget(check_in_label)
+        form_2.addWidget(self.check_in)
+        check_out_label = QLabel("Check out: ")
+        check_out_label.setFont(labelf)
+        form_2.addWidget(check_out_label)
+        form_2.addWidget(self.check_out)
         form.addWidget(self.btn_add)
-        form.addWidget(self.btn_clear)
+        form_2.addWidget(self.btn_clear)
         root.addLayout(form)
+        root.addLayout(form_2)
 
         self.table = QTableWidget(0, 6)
         self.table.setHorizontalHeaderLabels(["ID", "Name","Phone Number", "Room Type", "Check in", "Check out"])
+        # self.table.setColumnWidth(0, 200)
+        # self.table.setColumnWidth(1, 250)
+        # self.table.setColumnWidth(2, 220)
+        # self.table.setColumnWidth(3, 200)
+        # self.table.setColumnWidth(4, 200)
+        # self.table.setColumnWidth(5, 200)
+        # self.table.setColumnWidth(6, 200)
+
         self.table.horizontalHeader().setStretchLastSection(True)
         root.addWidget(self.table)
 
@@ -92,15 +117,14 @@ class ViewReservation(QWidget):
     def save(self):
         try:
             name = self.name_field.text().strip()
-            number = self.number_field.text()
+            number = self.number_field.text().strip()
             room_type = self.room_type.currentText()
-            check_in = self.check_in.text()
-            check_out = self.check_out.text()
-
+            check_in = self.check_in.date().toString("yyyy-MM-dd")
+            check_out = self.check_out.date().toString("yyyy-MM-dd")
 
             if self._editing_id is None:
                 # Create
-                self.service.create(name,number, room_type, check_in, check_out)
+                self.service.create(name, number, room_type, check_in, check_out)
             else:
                 # Update
                 data = Reservation(
@@ -117,8 +141,20 @@ class ViewReservation(QWidget):
             self.refresh()
 
         except Exception as e:
-            self.check_out.setPlaceholderText(f"Error: {e}")
-            # self.check_out.setStyleSheet("QLineEdit { border: 1px solid #d33; }")
+            # show a message box with the error
+            msg = QMessageBox(self)
+            msg.setIcon(QMessageBox.Icon.Critical)
+            msg.setWindowTitle("Error saving reservation")
+            msg.setText(str(e))
+            msg.exec()
+
+        except Exception as e:
+                # show a message box with the error
+            msg = QMessageBox(self)
+            msg.setIcon(QMessageBox.Icon.Critical)
+            msg.setWindowTitle("Error saving reservation")
+            msg.setText(str(e))
+            msg.exec()
 
     def on_delete(self):
         row = self.table.currentRow()
@@ -167,8 +203,8 @@ class ViewReservation(QWidget):
             self.table.setItem(r, 3, QTableWidgetItem(data.room_type))
             self.table.setItem(r, 4, QTableWidgetItem(data.check_in))
             self.table.setItem(r, 5, QTableWidgetItem(data.check_out))
-            self.table.resizeColumnsToContents()
 
+        self.table.resizeColumnsToContents()
 
 
 

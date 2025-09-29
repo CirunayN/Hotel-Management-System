@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import (
     QHBoxLayout,
     QListWidget,
     QStackedWidget,
-    QListWidgetItem, QTreeWidget, QTreeWidgetItem,
+    QListWidgetItem, QTreeWidget, QTreeWidgetItem, QVBoxLayout,
 )
 
 
@@ -14,7 +14,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Hotel Management System")
 
-        # Central container
+        #Central container
         container = QWidget()
         layout = QHBoxLayout(container)
         self.setCentralWidget(container)
@@ -23,11 +23,16 @@ class MainWindow(QMainWindow):
 
 
 
-        self.sidebar = QListWidget()
-        self.sidebar.setFixedWidth(100)
-        self.sidebar.setFixedHeight(300)
-        layout.addWidget(self.sidebar)
-        layout.addWidget(self.sidebar)
+        self.sidebarL = QListWidget()
+        self.sidebarL.setFixedWidth(100)
+        self.sidebarL.setFixedHeight(300)
+        layout.addWidget(self.sidebarL)
+        # layout.addWidget(self.sidebarL)
+
+
+        # self.sidebarR = QHBoxLayout
+        self.sidebar_right = QWidget()
+        layout.addWidget(self.sidebar_right, stretch=0)
 
         # Main area (stack of pages)
         self.stack = QStackedWidget()
@@ -37,7 +42,7 @@ class MainWindow(QMainWindow):
         self.features = {}
 
         # Handle sidebar selection
-        self.sidebar.currentRowChanged.connect(self.stack.setCurrentIndex)
+        self.sidebarL.currentRowChanged.connect(self.stack.setCurrentIndex)
 
     def add_feature(self, name: str, factory):
         # Create widget for feature
@@ -47,7 +52,7 @@ class MainWindow(QMainWindow):
 
         # Add to sidebar
         item = QListWidgetItem(name)
-        self.sidebar.addItem(item)
+        self.sidebarL.addItem(item)
 
         # Add to stacked widget
         self.stack.addWidget(widget)
