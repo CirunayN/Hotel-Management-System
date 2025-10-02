@@ -13,7 +13,6 @@ class ReservationItem():
         checkout TEXT NOT NULL
         )
         """)
-        self.conn.commit()
 
     def get_list(self) -> list[Reservation]:
         stored: list[Reservation] = []
@@ -30,20 +29,10 @@ class ReservationItem():
 
         return stored
 
-
-    def get_data(self, id_: int) -> Reservation | None:
-        row = self.conn.execute(
-            "SELECT id, name,number, room_type, checkin, checkout FROM reservation WHERE id=?",
-            (id_,),
-        ).fetchone()
-        return Reservation(*row) if row else None
-
-
-
     def repo_add(self, data: Reservation) -> Reservation:
         cur = self.conn.execute(
             "INSERT INTO reservation(name,number,room_type,checkin,checkout) VALUES (?,?,?,?,?)",
-            (data.name,data.number, data.room_type, data.check_in, data.check_out),
+            (data.name, data.number, data.room_type, data.check_in, data.check_out),
         )
         self.conn.commit()
         return Reservation(
@@ -58,8 +47,8 @@ class ReservationItem():
     def repo_update(self, data: Reservation) -> Reservation:
         assert data.id is not None
         self.conn.execute(
-            "UPDATE reservation SET name=?,number=?, room_type=?, checkin=?, checkout=? WHERE id=?",
-            (data.name,data.number, data.room_type, data.check_in, data.check_out,data.id),
+            "UPDATE reservation SET name=?, number=?, room_type=?, checkin=?, checkout=? WHERE id=?",
+            (data.name, data.number, data.room_type, data.check_in, data.check_out, data.id),
         )
         self.conn.commit()
         return data
@@ -67,8 +56,3 @@ class ReservationItem():
     def repo_delete(self, id_: int) -> None:
         self.conn.execute("DELETE FROM reservation WHERE id=?", (id_,))
         self.conn.commit()
-
-
-
-
-

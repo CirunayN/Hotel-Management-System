@@ -1,12 +1,11 @@
+# Main_app/main_frame/main_window.py
 from PyQt6.QtWidgets import (
-    QLabel,
     QMainWindow,
     QWidget,
     QHBoxLayout,
-    QListWidget,
     QStackedWidget,
-    QListWidgetItem, QTreeWidget, QTreeWidgetItem, QVBoxLayout,
 )
+from PyQt6.QtGui import QAction
 
 
 class MainWindow(QMainWindow):
@@ -14,25 +13,10 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Hotel Management System")
 
-        #Central container
+        # Central container
         container = QWidget()
         layout = QHBoxLayout(container)
         self.setCentralWidget(container)
-
-        # Sidebar (list of features)
-
-
-
-        self.sidebarL = QListWidget()
-        self.sidebarL.setFixedWidth(100)
-        self.sidebarL.setFixedHeight(300)
-        layout.addWidget(self.sidebarL)
-        # layout.addWidget(self.sidebarL)
-
-
-        # self.sidebarR = QHBoxLayout
-        self.sidebar_right = QWidget()
-        layout.addWidget(self.sidebar_right, stretch=0)
 
         # Main area (stack of pages)
         self.stack = QStackedWidget()
@@ -41,18 +25,32 @@ class MainWindow(QMainWindow):
         # Map feature names to widgets
         self.features = {}
 
-        # Handle sidebar selection
-        self.sidebarL.currentRowChanged.connect(self.stack.setCurrentIndex)
+        # Menu bar: Features menu (upper-left dropdown)
+        menu_bar = self.menuBar()
+        self.features_menu = menu_bar.addMenu("Features")
+
+        # Keep a mapping action -> index
+        self._menu_actions = {}
 
     def add_feature(self, name: str, factory):
-        # Create widget for feature
-
+        """
+        Create the widget from factory(),
+        add it to the stacked widget,
+        and add a QAction to the Features dropdown menu.
+        """
         widget = factory()
+        idx = self.stack.addWidget(widget)
         self.features[name] = widget
 
-        # Add to sidebar
-        item = QListWidgetItem(name)
-        self.sidebarL.addItem(item)
+        # Add to Features menu as a QAction
+        action = QAction(name, self)
+        action.triggered.connect(lambda checked=False, i=idx: self.stack.setCurrentIndex(i))
+        self.features_menu.addAction(action)
+        self._menu_actions[name] = action
 
-        # Add to stacked widget
-        self.stack.addWidget(widget)
+    def show_feature(self, name: str):
+        """Switch to a feature by name."""
+        widget = self.features.get(name)
+        if widget is None:
+            return
+        self.stack.setCurrentWidget(widget)

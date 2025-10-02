@@ -7,8 +7,7 @@ from PyQt6.QtWidgets import (
     QTableWidget,
     QVBoxLayout,
     QWidget,
-    QTableWidgetItem, QSpinBox,
-    QDateEdit, QComboBox, QMessageBox,
+    QTableWidgetItem, QDateEdit, QComboBox, QMessageBox,
 )
 from PyQt6.QtCore import QDate
 from .repo import ReservationItem
@@ -26,10 +25,8 @@ class ViewReservation(QWidget):
         super().__init__()
         self.setObjectName("View Reservation")
 
-        # wiring: core -> repo -> service
         self.service = MainFunc(ReservationItem(get_conn_to_reservastion()))
 
-        # --- UI ---
         root = QVBoxLayout(self)
         font = QFont("Arial", 16)
         labelf = QFont("Arial", 14)
@@ -83,15 +80,7 @@ class ViewReservation(QWidget):
         root.addLayout(form_2)
 
         self.table = QTableWidget(0, 6)
-        self.table.setHorizontalHeaderLabels(["ID", "Name","Phone Number", "Room Type", "Check in", "Check out"])
-        # self.table.setColumnWidth(0, 200)
-        # self.table.setColumnWidth(1, 250)
-        # self.table.setColumnWidth(2, 220)
-        # self.table.setColumnWidth(3, 200)
-        # self.table.setColumnWidth(4, 200)
-        # self.table.setColumnWidth(5, 200)
-        # self.table.setColumnWidth(6, 200)
-
+        self.table.setHorizontalHeaderLabels(["ID", "Name", "Phone Number", "Room Type", "Check in", "Check out"])
         self.table.horizontalHeader().setStretchLastSection(True)
         root.addWidget(self.table)
 
@@ -102,17 +91,34 @@ class ViewReservation(QWidget):
         actions.addWidget(self.btn_delete)
         root.addLayout(actions)
 
-
         self._editing_id: int | None = None
 
-        # signals
         self.btn_add.clicked.connect(self.save)
         self.btn_clear.clicked.connect(self.clear_form)
         self.btn_refresh.clicked.connect(self.refresh)
         self.btn_delete.clicked.connect(self.on_delete)
-        # self.table.cellDoubleClicked.connect(self.on_cell_double_clicked)
+        self.table.cellClicked.connect(self.on_table_click)
 
         self.refresh()
+
+    def on_table_click(self, row, _col):
+
+        self._editing_id = int(self.table.item(row, 0).text())  # ID is column 0
+
+        self.name_field.setText(self.table.item(row, 1).text())
+        self.number_field.setText(self.table.item(row, 2).text())
+        self.room_type.setCurrentText(self.table.item(row, 3).text())
+
+        from PyQt6.QtCore import QDate
+        check_in_str = self.table.item(row, 4).text()
+        check_out_str = self.table.item(row, 5).text()
+
+
+        self.check_in.setDate(QDate.fromString(check_in_str, "yyyy-MM-dd"))
+        self.check_out.setDate(QDate.fromString(check_out_str, "yyyy-MM-dd"))
+
+        # Change button text to show we’re editing
+        self.btn_add.setText("Save Changes")
 
     def save(self):
         try:
@@ -122,11 +128,15 @@ class ViewReservation(QWidget):
             check_in = self.check_in.date().toString("yyyy-MM-dd")
             check_out = self.check_out.date().toString("yyyy-MM-dd")
 
+            check_number = int(number)
+
+
+            if check_number <= 11:
+                QMessageBox.warning(self, "Error", "Number must be 11 digits.")
+
             if self._editing_id is None:
-                # Create
                 self.service.create(name, number, room_type, check_in, check_out)
             else:
-                # Update
                 data = Reservation(
                     id=self._editing_id,
                     name=name,
@@ -141,15 +151,6 @@ class ViewReservation(QWidget):
             self.refresh()
 
         except Exception as e:
-            # show a message box with the error
-            msg = QMessageBox(self)
-            msg.setIcon(QMessageBox.Icon.Critical)
-            msg.setWindowTitle("Error saving reservation")
-            msg.setText(str(e))
-            msg.exec()
-
-        except Exception as e:
-                # show a message box with the error
             msg = QMessageBox(self)
             msg.setIcon(QMessageBox.Icon.Critical)
             msg.setWindowTitle("Error saving reservation")
@@ -166,32 +167,14 @@ class ViewReservation(QWidget):
             self.clear_form()
         self.refresh()
 
-
-
-    # def on_cell_double_clicked(self, row, _col):
-    #     # Load row into form for editingv
-    #     self._editing_id = int(self.table.item(row, 0).text())
-    #     self.name_field.setText(self.table.item(row, 1).text())
-    #     self.number_field.setText(self.table.item(row, 2).text())
-    #     self.room_type.setCurrentText(self.table.item(row, 3).text())
-    #     self.check_in.setDate(self.table.item(row, 4).text())
-    #     self.check_out.setDate(self.table.item(row, 5).text())
-    #     # self.check_in.setDate(QDate.fromString(check_in_str, "yyyy-MM-dd"))
-    #     # self.check_out.setDate(QDate.fromString(check_out_str, "yyyy-MM-dd"))
-    #     self.status.setText(self.table.item(row, 6).text())
-    #     self.price.setValue(self.table.item(row, 7).text())
-    #     self.btn_add.setText("Save Changes")
-
     def clear_form(self):
         self._editing_id = None
         self.name_field.clear()
         self.number_field.clear()
         self.room_type.setCurrentIndex(0)
-        self.check_in.clear()
-        self.check_out.clear()
+        self.check_in.setDate(QDate.currentDate())
+        self.check_out.setDate(QDate.currentDate().addDays(1))
         self.btn_add.setText("Add / Save")
-        # self.check_out.setStyleSheet("")
-        # self.check_out.setPlaceholderText("check_out (optional)")
 
     def refresh(self):
         items = self.service.list()
@@ -203,15 +186,4 @@ class ViewReservation(QWidget):
             self.table.setItem(r, 3, QTableWidgetItem(data.room_type))
             self.table.setItem(r, 4, QTableWidgetItem(data.check_in))
             self.table.setItem(r, 5, QTableWidgetItem(data.check_out))
-
         self.table.resizeColumnsToContents()
-
-
-
-
-
-
-
-
-
-
