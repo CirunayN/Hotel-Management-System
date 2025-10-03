@@ -1,4 +1,4 @@
-from PyQt6.QtGui import QFont
+from PyQt6.QtGui import QFont, QRegularExpressionValidator
 from PyQt6.QtWidgets import (
     QHBoxLayout,
     QLabel,
@@ -9,11 +9,12 @@ from PyQt6.QtWidgets import (
     QWidget,
     QTableWidgetItem, QDateEdit, QComboBox, QMessageBox,
 )
-from PyQt6.QtCore import QDate
+from PyQt6.QtCore import QDate, Qt, QRegularExpression
 from .repo import ReservationItem
 from Main_app.core.db import get_conn_to_reservastion
 from .func import MainFunc
 from Main_app.core.data import Reservation
+
 
 
 def build_view_reservation() -> QWidget:
@@ -24,64 +25,84 @@ class ViewReservation(QWidget):
     def __init__(self):
         super().__init__()
         self.setObjectName("View Reservation")
+        form = QHBoxLayout()
+        form_2 = QHBoxLayout()
 
+        title_font = QFont("Arial", 18, QFont.Weight.Bold)
+
+        self.title = QLabel("Reservation")
+        self.title.setFont(title_font)
+        self.title.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        title = QVBoxLayout()
+        title.addWidget(self.title)
         self.service = MainFunc(ReservationItem(get_conn_to_reservastion()))
 
         root = QVBoxLayout(self)
         font = QFont("Arial", 16)
         labelf = QFont("Arial", 14)
+        root.addLayout(title)
 
-        form = QHBoxLayout()
-        form_2 = QHBoxLayout()
         self.name_field = QLineEdit()
         self.name_field.setPlaceholderText("Name")
         self.name_field.setFont(font)
+
         self.number_field = QLineEdit()
         self.number_field.setFont(font)
         self.number_field.setPlaceholderText("Phone Number")
+
         self.room_type = QComboBox()
         self.room_type.setFont(font)
         self.room_type.addItems(["Single", "Double", "Suite"])
+
         self.check_in = QDateEdit()
         self.check_in.setFont(font)
         self.check_in.setCalendarPopup(True)
         self.check_in.setDate(QDate.currentDate())
+
         self.check_out = QDateEdit()
         self.check_out.setFont(font)
         self.check_out.setCalendarPopup(True)
         self.check_out.setDate(QDate.currentDate().addDays(1))
+
         self.btn_add = QPushButton("Add / Save")
         self.btn_add.setFont(QFont("Arial", 14))
         self.btn_clear = QPushButton("Clear")
         self.btn_clear.setFont(QFont("Arial", 14))
+
         self.name_label = QLabel("Name: ")
         self.name_label.setFont(labelf)
         form.addWidget(self.name_label)
         form.addWidget(self.name_field)
+
         self.number_label = QLabel("Phone Number: ")
         self.number_label.setFont(labelf)
+        self.number_field.setValidator(QRegularExpressionValidator(QRegularExpression(r"\d{0,11}$")))
         form.addWidget(self.number_label)
         form.addWidget(self.number_field)
+
         self.room_type_label = QLabel("Room Type: ")
         self.room_type_label.setFont(labelf)
         form_2.addWidget(self.room_type_label)
         form_2.addWidget(self.room_type)
+
         check_in_label = QLabel("Check in: ")
         check_in_label.setFont(labelf)
         form_2.addWidget(check_in_label)
         form_2.addWidget(self.check_in)
+
         check_out_label = QLabel("Check out: ")
         check_out_label.setFont(labelf)
         form_2.addWidget(check_out_label)
         form_2.addWidget(self.check_out)
-        form.addWidget(self.btn_add)
-        form_2.addWidget(self.btn_clear)
-        root.addLayout(form)
-        root.addLayout(form_2)
 
         self.table = QTableWidget(0, 6)
         self.table.setHorizontalHeaderLabels(["ID", "Name", "Phone Number", "Room Type", "Check in", "Check out"])
         self.table.horizontalHeader().setStretchLastSection(True)
+
+        form.addWidget(self.btn_add)
+        form_2.addWidget(self.btn_clear)
+        root.addLayout(form)
+        root.addLayout(form_2)
         root.addWidget(self.table)
 
         actions = QHBoxLayout()
@@ -103,21 +124,14 @@ class ViewReservation(QWidget):
 
     def on_table_click(self, row, _col):
 
-        self._editing_id = int(self.table.item(row, 0).text())  # ID is column 0
-
+        self._editing_id = int(self.table.item(row, 0).text())
         self.name_field.setText(self.table.item(row, 1).text())
         self.number_field.setText(self.table.item(row, 2).text())
         self.room_type.setCurrentText(self.table.item(row, 3).text())
-
-        from PyQt6.QtCore import QDate
         check_in_str = self.table.item(row, 4).text()
         check_out_str = self.table.item(row, 5).text()
-
-
         self.check_in.setDate(QDate.fromString(check_in_str, "yyyy-MM-dd"))
         self.check_out.setDate(QDate.fromString(check_out_str, "yyyy-MM-dd"))
-
-        # Change button text to show we’re editing
         self.btn_add.setText("Save Changes")
 
     def save(self):
@@ -128,11 +142,10 @@ class ViewReservation(QWidget):
             check_in = self.check_in.date().toString("yyyy-MM-dd")
             check_out = self.check_out.date().toString("yyyy-MM-dd")
 
-            check_number = int(number)
 
-
-            if check_number <= 11:
-                QMessageBox.warning(self, "Error", "Number must be 11 digits.")
+            if len(number) != 11:
+                QMessageBox.warning(self, "Error", "Number must be exactly 11 digits.")
+                return
 
             if self._editing_id is None:
                 self.service.create(name, number, room_type, check_in, check_out)

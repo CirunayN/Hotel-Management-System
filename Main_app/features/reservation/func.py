@@ -8,14 +8,8 @@ class MainFunc:
     def validate(self, data: Reservation):
         if not data.name.strip():
             raise ValueError("Name is required")
-        if not data.room_type.strip():
-            raise ValueError("Room is required")
         if not data.number.strip():
             raise ValueError("Number is required")
-        if not data.check_in.strip():
-            raise ValueError("Check-in is required")
-        if not data.check_out.strip():
-            raise ValueError("Check-out is required")
 
     def list(self):
         return self.repo.get_list()
