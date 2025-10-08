@@ -57,6 +57,7 @@ source venv/bin/activate
 ```
 pip install -r requirements.txt
 ```
+If you don’t have a requirements.txt file, generate one using:
 ```
 pip freeze > requirements.txt
 ```
