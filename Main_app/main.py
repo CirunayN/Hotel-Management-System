@@ -10,11 +10,14 @@ from Main_app.features.services.view import build_services_page
 def main():
     app = QApplication(sys.argv)
     win = MainWindow()
+    app.setStyleSheet(StyleShesh.MessageBox)
 
+    #Creates the QStackedWidget
     win.add_feature("Dashboard", build_dashboard_page)
     win.add_feature("Reservation", build_view_reservation)
     win.add_feature("Services", build_services_page)
-    win.resize(1200, 760)
+
+    win.resize(1300, 890)
     win.show()
     sys.exit(app.exec())
 

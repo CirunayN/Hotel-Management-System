@@ -1,4 +1,3 @@
-# Main_app/main_frame/main_window.py
 from PyQt6.QtWidgets import (
     QMainWindow,
     QWidget,
@@ -26,7 +25,7 @@ class MainWindow(QMainWindow):
 
         menu_bar = self.menuBar()
         self.features_menu = menu_bar.addMenu("Menu")
-        # menu_bar.setStyleSheet(StyleShesh.Menu)
+
         box = QGroupBox()
         box.setStyleSheet(StyleShesh.GroupBox)
         self.features_menu.setStyleSheet(StyleShesh.Menu)

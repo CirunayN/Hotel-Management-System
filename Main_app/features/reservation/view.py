@@ -28,11 +28,9 @@ class ViewReservation(QWidget):
         super().__init__()
         self.setObjectName("View Reservation")
 
-        # Create the group box
         form_box = QGroupBox("Reservation Form")
         form_box.setStyleSheet(StyleShesh.GroupBox)
 
-        # Create main layout for the group box (vertical)
         form_main_layout = QVBoxLayout(form_box)
 
         self.setStyleSheet(StyleShesh.Page)
@@ -90,13 +88,13 @@ class ViewReservation(QWidget):
         self.btn_clear.setFont(QFont("Arial", 14))
         self.btn_clear.setStyleSheet(StyleShesh.Button)
 
-        # First row: Name and Phone Number
+        #First row: Name and Phone Number
         first_row_layout = QHBoxLayout()
 
         self.name_label = QLabel("Name: ")
         self.name_label.setFont(label_font)
         self.name_field.setMaxLength(100)
-        self.name_field.setValidator(QRegularExpressionValidator(QRegularExpression(r"^[A-Za-z\s'-]{1,100}$")))
+        self.name_field.setValidator(QRegularExpressionValidator(QRegularExpression(r"^[A-Za-zÀ-ÿ\s'\-]{1,100}$")))
         first_row_layout.addWidget(self.name_label)
         first_row_layout.addWidget(self.name_field)
 
@@ -106,7 +104,7 @@ class ViewReservation(QWidget):
         first_row_layout.addWidget(self.number_label)
         first_row_layout.addWidget(self.number_field)
 
-        # Second row: Room Type, Check-in, Check-out
+        #Second row: Room Type, Check-in, Check-out
         second_row_layout = QHBoxLayout()
 
         self.room_type_label = QLabel("Room Type: ")
@@ -134,7 +132,7 @@ class ViewReservation(QWidget):
         form_main_layout.addLayout(second_row_layout)
         form_main_layout.addLayout(button_row_layout)
 
-        #ADD THE GROUP BOX TO THE ROOT LAYOUT
+        #Add the group box to root layout
         root.addWidget(form_box)
 
         #Create and setup table
@@ -194,6 +192,23 @@ class ViewReservation(QWidget):
             room_type = self.room_type.currentText()
             check_in = self.check_in.date().toString("yyyy-MM-dd")
             check_out = self.check_out.date().toString("yyyy-MM-dd")
+
+            #Validate name
+            if not name and self._editing_id is None:
+                QMessageBox.warning(self, "Validation Error", "Name is required.")
+                return
+
+            #Validate phone number
+            if len(number) != 11:
+                QMessageBox.warning(self, "Validation Error", "Phone number must be exactly 11 digits.")
+                return
+
+            #Validate date range
+            if self.check_in.date() > self.check_out.date():
+                QMessageBox.warning(self, "Invalid Date Range",
+                                    "Check-in date must be before check-out date.")
+                return
+
             room_base_price = {
                 "Single": 1000,
                 "Double": 1800,
@@ -205,15 +220,17 @@ class ViewReservation(QWidget):
 
             nights = (check_out_date - check_in_date).days
 
+            if nights <= 0:
+                QMessageBox.warning(self, "Invalid Date Range",
+                                    "Check-out date must be after check-in date.")
+                return
+
             base_price = room_base_price.get(room_type)
             total_price = base_price * nights
 
-            if len(number) != 11:
-                QMessageBox.warning(self, "Error", "Number must be exactly 11 digits.")
-                return
-
             if self._editing_id is None:
                 self.service.create(name, number, room_type, check_in, check_out, total_price)
+                QMessageBox.information(self, "Success", "Reservation created successfully!")
             else:
                 data = Reservation(
                     id=self._editing_id,
@@ -225,6 +242,7 @@ class ViewReservation(QWidget):
                     price=total_price
                 )
                 self.service.update(data)
+                QMessageBox.information(self, "Success", "Reservation updated successfully!")
 
             self.clear_form()
             self.refresh()
@@ -239,12 +257,32 @@ class ViewReservation(QWidget):
     def on_delete(self):
         row = self.table.currentRow()
         if row < 0:
+            QMessageBox.warning(self, "No Selection", "Please select a reservation to delete.")
             return
-        id_ = int(self.table.item(row, 0).text())
-        self.service.delete(id_)
-        if self._editing_id == id_:
-            self.clear_form()
-        self.refresh()
+
+        #Get the reservation details for confirmation message
+        reservation_id = int(self.table.item(row, 0).text())
+        client_name = self.table.item(row, 1).text()
+        room_type = self.table.item(row, 3).text()
+
+        #Confirmation dialog
+        reply = QMessageBox.question(
+            self,
+            "Confirm Deletion",
+            f"Are you sure you want to delete the reservation for:\n\n"
+            f"Client: {client_name}\n"
+            f"Room Type: {room_type}\n"
+            f"Reservation ID: {reservation_id}",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
+        )
+
+        if reply == QMessageBox.StandardButton.Yes:
+            self.service.delete(reservation_id)
+            if self._editing_id == reservation_id:
+                self.clear_form()
+            self.refresh()
+            QMessageBox.information(self, "Success", "Reservation deleted successfully!")
 
     def clear_form(self):
         self._editing_id = None

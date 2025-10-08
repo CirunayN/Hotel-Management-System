@@ -1,4 +1,3 @@
-# dashboard.py
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton,
     QDateEdit, QTableWidget, QMessageBox, QFrame, QLineEdit, QGroupBox
@@ -29,21 +28,20 @@ class DashboardPage(QWidget):
         self.conn = get_conn_to_reservastion()
         make_tables(self.conn)
 
-        # Apply global page style - ONLY ONCE
         self.setStyleSheet(StyleShesh.Page)
 
         root = QVBoxLayout(self)
         root.setSpacing(15)
         root.setContentsMargins(20, 20, 20, 20)
 
-        # Title
+        #Title
         title = QLabel("Dashboard")
         title.setStyleSheet(StyleShesh.TitleBanner)
         title.setFont(QFont("Segoe UI", 20, QFont.Weight.Bold))
         title.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         root.addWidget(title)
 
-        # Summary cards
+        #Summary cards
         self.summary_layout = QHBoxLayout()
         root.addLayout(self.summary_layout)
         self.cards = {}
@@ -52,12 +50,12 @@ class DashboardPage(QWidget):
             self.cards[key] = card[1]
             self.summary_layout.addWidget(card[0])
 
-        # Filters Group Box
+        #Filters Group Box
         filters_group = QGroupBox("Filter Reservations")
         filters_group.setStyleSheet(StyleShesh.GroupBox)
         filters_layout = QVBoxLayout(filters_group)
 
-        # First line: Room Type, Check-in, Check-out, and Filter Button
+        #First line > Room Type, Check-in, Check-out, and Filter Button
         first_line_layout = QHBoxLayout()
         first_line_layout.addWidget(QLabel("Room Type:"))
         self.room_filter = QComboBox()
@@ -87,7 +85,7 @@ class DashboardPage(QWidget):
 
         filters_layout.addLayout(first_line_layout)
 
-        # Second line: Search User and Search Button
+        #Second line > Search User and Search Button
         second_line_layout = QHBoxLayout()
         second_line_layout.addWidget(QLabel("Search User or Number:"))
         self.search_input = QLineEdit()
@@ -101,7 +99,7 @@ class DashboardPage(QWidget):
 
         root.addWidget(filters_group)
 
-        # Table
+        #Table
         self.table = QTableWidget(0, 5)
         self.table.setHorizontalHeaderLabels(["Client Name", "Room Type", "Check-in", "Check-out", "Room Price"])
         self.table.setStyleSheet(StyleShesh.Table)
@@ -111,11 +109,11 @@ class DashboardPage(QWidget):
         root.addWidget(self.table)
         self.table.verticalHeader().setVisible(False)
 
-        # Signals
+        #Signals
         self.btn_filter.clicked.connect(self.on_filter)
         self.btn_search.clicked.connect(self.on_search)
 
-        # Initial load
+        #Initial load
         self.on_filter()
 
     def _make_card(self, title: str, value: str):

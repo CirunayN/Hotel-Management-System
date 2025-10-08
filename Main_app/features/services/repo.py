@@ -5,6 +5,7 @@ class ServicesFunc:
     def __init__(self, conn):
         self.conn = conn
 
+    #This ensure that the table is created
     def create_tables(self):
         cur = self.conn.cursor()
         cur.execute("""
@@ -26,6 +27,7 @@ class ServicesFunc:
         )
         """)
         self.conn.commit()
+
 
     def add_service(self, name: str, category: str, price: int):
         cur = self.conn.execute(
