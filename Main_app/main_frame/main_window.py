@@ -1,12 +1,13 @@
+# Main_app/main_frame/main_window.py
 from PyQt6.QtWidgets import (
-    QLabel,
     QMainWindow,
     QWidget,
     QHBoxLayout,
-    QListWidget,
-    QStackedWidget,
-    QListWidgetItem, QTreeWidget, QTreeWidgetItem,
+    QStackedWidget, QGroupBox,
 )
+from PyQt6.QtGui import QAction
+
+from Main_app.core.stylesheet import StyleShesh
 
 
 class MainWindow(QMainWindow):
@@ -14,40 +15,31 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Hotel Management System")
 
-        # Central container
         container = QWidget()
         layout = QHBoxLayout(container)
         self.setCentralWidget(container)
 
-        # Sidebar (list of features)
-
-
-
-        self.sidebar = QListWidget()
-        self.sidebar.setFixedWidth(100)
-        self.sidebar.setFixedHeight(300)
-        layout.addWidget(self.sidebar)
-        layout.addWidget(self.sidebar)
-
-        # Main area (stack of pages)
         self.stack = QStackedWidget()
         layout.addWidget(self.stack)
 
-        # Map feature names to widgets
-        self.features = {}
+        self.menu = {}
 
-        # Handle sidebar selection
-        self.sidebar.currentRowChanged.connect(self.stack.setCurrentIndex)
+        menu_bar = self.menuBar()
+        self.features_menu = menu_bar.addMenu("Menu")
+        # menu_bar.setStyleSheet(StyleShesh.Menu)
+        box = QGroupBox()
+        box.setStyleSheet(StyleShesh.GroupBox)
+        self.features_menu.setStyleSheet(StyleShesh.Menu)
+
+        self._menu_actions = {}
 
     def add_feature(self, name: str, factory):
-        # Create widget for feature
-
         widget = factory()
-        self.features[name] = widget
+        idx = self.stack.addWidget(widget)
+        self.menu[name] = widget
 
-        # Add to sidebar
-        item = QListWidgetItem(name)
-        self.sidebar.addItem(item)
+        action = QAction(name, self)
+        action.triggered.connect(lambda checked=False, i=idx: self.stack.setCurrentIndex(i))
+        self.features_menu.addAction(action)
+        self._menu_actions[name] = action
 
-        # Add to stacked widget
-        self.stack.addWidget(widget)
