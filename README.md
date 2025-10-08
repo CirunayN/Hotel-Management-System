@@ -1,7 +1,7 @@
-Hotel Reservation Management System (PyQt6)
+**Hotel Reservation Management System (PyQt6)**
 
 
-Key Features
+**Key Features**
 
 **Dashboard**:
 * Displays summaries of key hotel metrics (reservations, available rooms, services, etc.)
