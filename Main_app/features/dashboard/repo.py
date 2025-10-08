@@ -1,6 +1,3 @@
-# Main_app/features/dashboard/repo.py
-from PyQt6.QtCore import QDate
-from PyQt6.QtGui import QColor, QBrush
 from PyQt6.QtWidgets import QTableWidget, QTableWidgetItem
 from collections import Counter
 
@@ -62,8 +59,6 @@ def show_table(table: QTableWidget, rows):
         table.setItem(r, 2, QTableWidgetItem(checkin))
         table.setItem(r, 3, QTableWidgetItem(checkout))
         table.setItem(r, 4, QTableWidgetItem(f"₱{price:,}"))
-
-
 
 
 def calculate_summary(conn, rows):

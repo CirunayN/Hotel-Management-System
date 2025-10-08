@@ -27,7 +27,6 @@ class ReservationItem():
         for r in rows:
             item = Reservation(*r)
             stored.append(item)
-
         return stored
 
     def repo_add(self, data: Reservation) -> Reservation:

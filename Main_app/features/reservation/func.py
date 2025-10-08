@@ -14,7 +14,7 @@ class MainFunc:
     def list(self):
         return self.repo.get_list()
 
-    def create(self, name: str, number: str, room_type: str, check_in: str, check_out: str,price: float) -> Reservation:
+    def create(self, name: str, number: str, room_type: str, check_in: str, check_out: str,price: int) -> Reservation:
         data = Reservation(id=None, name=name, number=number, room_type=room_type, check_in=check_in, check_out=check_out,price=price)
         self.validate(data)
         return self.repo.repo_add(data)

@@ -1,12 +1,17 @@
 # stylesheet.py
 class StyleShesh:
+
+    #Main color palette generated from: https://coolors.co/
     RussianViolet = "#231942"
     UltraViolet = "#5E548E"
     AfricanViolet = "#9F86C0"
     Lilac = "#BE95C4"
     PinkLavender = "#E0B1CB"
 
-    # --- Main Background (for Dashboard) ---
+
+
+
+
     Page = f"""
     QWidget#Dashboard Page {{
         background-color: {RussianViolet};
@@ -25,6 +30,8 @@ class StyleShesh:
         qproperty-alignment: AlignCenter;
     }}
     """
+
+
     Menu = f"""
     QMenu {{
         background-color: white;
@@ -55,7 +62,7 @@ class StyleShesh:
     """
 
 
-    # --- Buttons ---
+
     Button = f"""
     QPushButton {{
         background-color: {UltraViolet};
@@ -73,7 +80,7 @@ class StyleShesh:
     }}
     """
 
-    # --- Summary Cards ---
+
     Card = f"""
     QFrame {{
         background-color: {AfricanViolet};
@@ -96,7 +103,7 @@ class StyleShesh:
     }}
     """
 
-    # --- Table (used for Dashboard) ---
+
     Table = f"""
     QTableWidget {{
         background-color: #ffffff;
@@ -125,7 +132,6 @@ class StyleShesh:
     }}
 """
 
-    # --- Input Fields ---
     Input = f"""
     QLineEdit, QComboBox, QDateEdit {{
         background-color: #ffffff;
@@ -143,7 +149,6 @@ class StyleShesh:
     }}
     """
 
-    # --- GroupBox / Panel styling ---
     GroupBox = f"""
     QSpinBox {{
         background-color: white;
@@ -247,7 +252,7 @@ class StyleShesh:
     }}
     """
 
-    # --- Enhanced DateEdit Styling ---
+
     DateEdit = f"""
     QDateEdit {{
         background-color: white;
@@ -333,5 +338,77 @@ class StyleShesh:
         }}
     """
 
+    MessageBox = f"""
+    QMessageBox {{
+        background-color: white;
+        border: 2px solid {Lilac};
+        border-radius: 12px;
+        font-family: 'Segoe UI';
+        padding: 15px;
+    }}
+
+    QMessageBox QLabel {{
+        color: {RussianViolet};
+        font-size: 14px;
+        font-weight: normal;
+        line-height: 1.4;
+    }}
+
+    QMessageBox QLabel#qt_msgbox_label {{
+        padding: 10px;
+    }}
+
+    QMessageBox QPushButton {{
+        background-color: {UltraViolet};
+        color: white;
+        border-radius: 8px;
+        padding: 10px 20px;
+        font-weight: bold;
+        border: none;
+        min-width: 90px;
+        margin: 5px;
+    }}
+
+    QMessageBox QPushButton:hover {{
+        background-color: {AfricanViolet};
+    }}
+
+    QMessageBox QPushButton:pressed {{
+        background-color: {Lilac};
+    }}
+
+    QMessageBox QPushButton:focus {{
+        outline: 2px solid {PinkLavender};
+    }}
+
+    /* Danger buttons (No/Cancel in confirmation dialogs) */
+    QMessageBox QPushButton[text="No"],
+    QMessageBox QPushButton[text="Cancel"] {{
+        background-color: {Lilac};
+    }}
+
+    QMessageBox QPushButton[text="No"]:hover,
+    QMessageBox QPushButton[text="Cancel"]:hover {{
+        background-color: {RussianViolet};
+    }}
+
+    /* Different border colors based on message type */
+    QMessageBox[windowTitle*="Confirm"] {{
+        border: 2px solid {UltraViolet};
+    }}
+
+    QMessageBox[windowTitle*="Validation"],
+    QMessageBox[windowTitle*="Error"] {{
+        border: 2px solid #DC2626;
+    }}
+
+    QMessageBox[windowTitle*="Success"] {{
+        border: 2px solid #059669;
+    }}
+
+    QMessageBox[windowTitle*="Warning"] {{
+        border: 2px solid #D97706;
+    }}
+    """
 
 

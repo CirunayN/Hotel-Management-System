@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from PyQt6.QtWidgets import (
     QWidget, QMessageBox, QVBoxLayout, QHBoxLayout,
     QLineEdit, QComboBox, QSpinBox, QPushButton,
@@ -25,10 +27,10 @@ class ServicesPage(QWidget):
         self.func = ServicesFunc(self.conn)
         self.func.create_tables()
 
-        # Main root layout
+        #Main root layout
         root = QVBoxLayout(self)
 
-        # Title with banner styling
+        #Title with banner styling
         title_font = QFont("Arial", 18, QFont.Weight.Bold)
         self.title = QLabel("Services")
         self.title.setFont(title_font)
@@ -36,15 +38,15 @@ class ServicesPage(QWidget):
         self.title.setStyleSheet(StyleShesh.TitleBanner)
         root.addWidget(self.title)
 
-        # Main content layout (horizontal)
+        #Main content layout
         main_layout = QHBoxLayout()
         root.addLayout(main_layout)
 
-        # LEFT SIDE
+        #Left Side
         left_layout = QVBoxLayout()
         main_layout.addLayout(left_layout, 2)
 
-        # --- Add Service Box ---
+        #Service Box
         form_box = QGroupBox("Add / Manage Services")
         form_box.setStyleSheet(StyleShesh.GroupBox)
         form_layout = QHBoxLayout(form_box)
@@ -77,10 +79,9 @@ class ServicesPage(QWidget):
         form_layout.addWidget(self.service_price)
         form_layout.addWidget(add_btn)
         form_layout.addWidget(del_btn)
-
         left_layout.addWidget(form_box)
 
-        # --- Services Table ---
+        #Services Table
         self.service_table = QTableWidget(0, 4)
         self.service_table.setHorizontalHeaderLabels(["ID", "Name", "Category", "Price"])
         self.service_table.setStyleSheet(StyleShesh.Table)
@@ -93,17 +94,15 @@ class ServicesPage(QWidget):
         header_table.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
         left_layout.addWidget(self.service_table)
 
-        # --- Assign Box ---
+        #Assign Box
         selector_box = QGroupBox("Assign Service to Client")
         selector_box.setStyleSheet(StyleShesh.GroupBox)
         selector_layout = QHBoxLayout(selector_box)
 
         self.reservation_select = QComboBox()
         self.reservation_select.setStyleSheet(StyleShesh.ComboBox)
-
         self.service_select = QComboBox()
         self.service_select.setStyleSheet(StyleShesh.ComboBox)
-
         self.qty = QSpinBox()
         self.qty.setValue(1)
         self.qty.setStyleSheet(StyleShesh.GroupBox)
@@ -122,7 +121,7 @@ class ServicesPage(QWidget):
 
         left_layout.addWidget(selector_box)
 
-        # --- Orders Table ---
+        #Orders Table
         self.order_table = QTableWidget(0, 4)
         self.order_table.setHorizontalHeaderLabels(["Reservation ID", "Client", "Services", "Total"])
         self.order_table.setStyleSheet(StyleShesh.Table)
@@ -141,7 +140,7 @@ class ServicesPage(QWidget):
         pay_btn.clicked.connect(self.generate_receipt)
         left_layout.addWidget(pay_btn)
 
-        # === RIGHT SIDE: Receipt Panel ===
+        #Right Side
         right_box = QGroupBox("Receipt")
         right_box.setStyleSheet(StyleShesh.GroupBox)
         right_layout = QVBoxLayout(right_box)
@@ -177,10 +176,29 @@ class ServicesPage(QWidget):
             QMessageBox.warning(self, "Validation", "Service name is required.")
             return
 
-        self.func.add_service(name, cat, price)
-        self.service_name.clear()
-        self.service_price.setValue(0)
-        self.refresh_services()
+
+        if price < 0:
+            QMessageBox.warning(self, "Validation", "Price must be above 0.")
+            return
+
+
+        confirm = QMessageBox.question(
+            self,
+            "Confirm Add Service",
+            f"Are you sure you want to add this service?\n\n"
+            f"Service Name: {name}\n"
+            f"Category: {cat}\n"
+            f"Price: ₱{price}",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No  # Default to "No" for safety
+        )
+
+        if confirm == QMessageBox.StandardButton.Yes:
+            self.func.add_service(name, cat, price)
+            self.service_name.clear()
+            self.service_price.setValue(0)
+            self.refresh_services()
+            QMessageBox.information(self, "Success", "Service added successfully!")
 
     #Remove service
     def remove_service(self):
@@ -239,11 +257,34 @@ class ServicesPage(QWidget):
         if self.reservation_select.count() == 0 or self.service_select.count() == 0:
             QMessageBox.warning(self, "Validation", "Select a reservation and service first.")
             return
+
         rid = int(self.reservation_select.currentData())
         sid = int(self.service_select.currentData())
         qty = int(self.qty.value())
-        self.func.assign_service(rid, sid, qty)
-        self.refresh_orders()
+
+        service_name = self.service_select.currentText()
+
+        reservation_text = self.reservation_select.currentText()
+
+        if qty < 1:
+            QMessageBox.warning(self, "Validation", "Quantity must be at least 1.")
+            return
+
+        confirm = QMessageBox.question(
+            self,
+            "Confirm Assign Service",
+            f"Are you sure you want to assign this service?\n\n"
+            f"Reservation: {reservation_text}\n"
+            f"Service: {service_name}\n"
+            f"Quantity: {qty}",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No  # Default to "No" for safety
+        )
+
+        if confirm == QMessageBox.StandardButton.Yes:
+            self.func.assign_service(rid, sid, qty)
+            self.refresh_orders()
+            QMessageBox.information(self, "Success", "Service assigned successfully!")
 
     #Generate receipt
     def generate_receipt(self):
@@ -257,18 +298,50 @@ class ServicesPage(QWidget):
         services = self.order_table.item(selected, 2).text()
         total = self.order_table.item(selected, 3).text()
 
-        receipt_text = (
-            f"🧾 HOTEL SERVICE RECEIPT\n"
-            f"---------------------------\n"
-            f"Reservation ID: {rid}\n"
-            f"Client Name: {client}\n"
-            f"Services Availed:\n{services}\n\n"
-            f"Total Amount: {total}\n"
-            f"---------------------------\n"
-            f"Thank you for your payment!\n"
-        )
-        self.receipt_display.setText(receipt_text)
+        # Convert rid to integer for formatting, with error handling
+        try:
+            rid_int = int(rid)
+            formatted_rid = f"{rid_int:06d}"
+        except ValueError:
+            formatted_rid = rid  # Use original if conversion fails
 
-        #Remove after payment
-        self.func.remove_order(int(rid))
-        self.refresh_orders()
+        # Confirmation dialog
+        confirm = QMessageBox.question(
+            self,
+            "Confirm Payment",
+            f"Are you sure you want to generate receipt and mark as paid?\n\n"
+            f"Reservation ID: {rid}\n"
+            f"Client: {client}\n"
+            f"Total Amount: {total}",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
+        )
+
+        if confirm == QMessageBox.StandardButton.Yes:
+            receipt_text = (
+                f"=================================\n"
+                f"        HOTEL SERVICE RECEIPT\n"
+                f"=================================\n"
+                f"Receipt #: {formatted_rid}\n"
+                f"Date:      {datetime.now().strftime('%Y-%m-%d')}\n"
+                f"Time:      {datetime.now().strftime('%H:%M')}\n"
+                f"---------------------------------\n"
+                f"Guest:     {client}\n"
+                f"Reservation: #{rid}\n"
+                f"---------------------------------\n"
+                f"SERVICES:\n"
+                f"{services}\n"
+                f"---------------------------------\n"
+                f"TOTAL:     {total}\n"
+                f"---------------------------------\n"
+                f"Status:    PAID\n"
+                f"---------------------------------\n"
+                f"Thank you for your business!\n"
+                f"=================================\n"
+            )
+            self.receipt_display.setText(receipt_text)
+
+            # Remove after payment
+            self.func.remove_order(int(rid))
+            self.refresh_orders()
+            QMessageBox.information(self, "Success", "Receipt generated and order marked as paid!")
