@@ -3,9 +3,11 @@ from PyQt6.QtWidgets import (
     QMainWindow,
     QWidget,
     QHBoxLayout,
-    QStackedWidget,
+    QStackedWidget, QGroupBox,
 )
 from PyQt6.QtGui import QAction
+
+from Main_app.core.stylesheet import StyleShesh
 
 
 class MainWindow(QMainWindow):
@@ -24,6 +26,10 @@ class MainWindow(QMainWindow):
 
         menu_bar = self.menuBar()
         self.features_menu = menu_bar.addMenu("Menu")
+        # menu_bar.setStyleSheet(StyleShesh.Menu)
+        box = QGroupBox()
+        box.setStyleSheet(StyleShesh.GroupBox)
+        self.features_menu.setStyleSheet(StyleShesh.Menu)
 
         self._menu_actions = {}
 

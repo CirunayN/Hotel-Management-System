@@ -1,12 +1,11 @@
-# Main_app/features/dashboard/func.py
+# Main_app/features/dashboard/repo.py
 from PyQt6.QtCore import QDate
 from PyQt6.QtGui import QColor, QBrush
 from PyQt6.QtWidgets import QTableWidget, QTableWidgetItem
 from collections import Counter
 
 
-def ensure_tables(conn):
-    """Create necessary tables if not exist"""
+def make_tables(conn):
     cur = conn.cursor()
     cur.execute("""
     CREATE TABLE IF NOT EXISTS reservation (
@@ -41,60 +40,64 @@ def ensure_tables(conn):
     conn.commit()
 
 
-def fetch_reservations(conn, start, end, room_filter):
+def fetch_reservations(conn, start, end, room):
     params = (start, end)
     sql = """
-    SELECT id, name, room_type, checkin, checkout FROM reservation
+    SELECT id, name, room_type, checkin, checkout,price FROM reservation
     WHERE NOT (checkout < ? OR checkin > ?)
     """
-    if room_filter != "All":
+    if room != "All":
         sql += " AND room_type = ?"
-        params = (start, end, room_filter)
+        params = (start, end, room)
 
     return conn.execute(sql, params).fetchall()
 
 
-def populate_table(table: QTableWidget, rows):
-    """Populate the reservation table with data and color rows."""
+def show_table(table: QTableWidget, rows):
     table.setRowCount(len(rows))
-    today = QDate.currentDate().toString("yyyy-MM-dd")
-
     for r, row in enumerate(rows):
-        rid, name, rtype, checkin, checkout = row
+        rid, name, rtype, checkin, checkout, price = row
         table.setItem(r, 0, QTableWidgetItem(name))
         table.setItem(r, 1, QTableWidgetItem(rtype))
         table.setItem(r, 2, QTableWidgetItem(checkin))
         table.setItem(r, 3, QTableWidgetItem(checkout))
+        table.setItem(r, 4, QTableWidgetItem(f"₱{price:,}"))
 
-        # --- Row coloring ---
-        if checkin == today:
-            for c in range(4):
-                table.item(r, c).setBackground(QBrush(QColor("#d4edda")))  # light green
-        elif checkout < today:
-            for c in range(4):
-                table.item(r, c).setBackground(QBrush(QColor("#f8d7da")))  # light red
 
-    table.resizeColumnsToContents()
 
 
 def calculate_summary(conn, rows):
     total_res = len(rows)
+    room_revenue = sum(r[5] for r in rows) if rows else 0  # sum of room price (index 5)
+
+    ids = tuple(r[0] for r in rows)
+    if ids:
+        q = f"SELECT SUM(total) FROM service_orders WHERE reservation_id IN ({','.join('?' * len(ids))})"
+        service_revenue = conn.execute(q, ids).fetchone()[0] or 0
+    else:
+        service_revenue = 0
+
+    total_revenue = room_revenue + service_revenue
+
     if rows:
-        room_types = [r[2] for r in rows]  # index 2 = room_type
+        room_types = [r[2] for r in rows]
         most_common = Counter(room_types).most_common(1)[0][0]
     else:
         most_common = "—"
 
-    # Expected revenue
-    ids = tuple(r[0] for r in rows)
-    if ids:
-        q = f"SELECT SUM(total) FROM service_orders WHERE reservation_id IN ({','.join('?'*len(ids))})"
-        total_revenue = conn.execute(q, ids).fetchone()[0] or 0
-    else:
-        total_revenue = 0
-
     return {
         "Total Reservations": str(total_res),
-        "Expected Revenue": f"₱{total_revenue}",
+        "Expected Revenue": f"₱{total_revenue:,}",
         "Most Frequent Room": most_common,
     }
+
+
+def search_user(conn, keyword: str):
+    sql = """
+    SELECT id, name, room_type, checkin, checkout,price
+    FROM reservation
+    WHERE name LIKE ? OR number LIKE ?
+    """
+    kw = f"%{keyword}%"
+    return conn.execute(sql, (kw, kw)).fetchall()
+

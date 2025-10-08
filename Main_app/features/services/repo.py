@@ -40,22 +40,26 @@ class ServicesFunc:
             "SELECT id, name, category, price FROM services ORDER BY id DESC"
         ).fetchall()
 
+    def delete_service_and_orders(self, service_id: int):
+        self.conn.execute("DELETE FROM service_orders WHERE service_id=?", (service_id,))
+        self.conn.execute("DELETE FROM services WHERE id=?", (service_id,))
+        self.conn.commit()
 
     def list_reservations(self):
         return self.conn.execute(
             "SELECT id, name, checkin, checkout FROM reservation ORDER BY id DESC"
         ).fetchall()
 
-    def assign_service(self, rid: int, sid: int, qty: int):
+    def assign_service(self, reservation_id: int, service_id: int, qty: int):
         price = int(
-            self.conn.execute("SELECT price FROM services WHERE id=?", (sid,))
+            self.conn.execute("SELECT price FROM services WHERE id=?", (service_id,))
             .fetchone()[0]
         )
         total = price * qty
 
         cur = self.conn.execute(
             "SELECT id, quantity, total FROM service_orders WHERE reservation_id=? AND service_id=?",
-            (rid, sid),
+            (reservation_id, service_id),
         ).fetchone()
 
         if cur:
@@ -67,10 +71,10 @@ class ServicesFunc:
                 (new_qty, new_total, oid),
             )
         else:
-            created_at = QDateTime.currentDateTime().toString("yyyy-MM-dd")
+            created_date = QDateTime.currentDateTime().toString("yyyy-MM-dd")
             self.conn.execute(
                 "INSERT INTO service_orders (reservation_id, service_id, quantity, total, created_at) VALUES (?,?,?,?,?)",
-                (rid, sid, qty, total, created_at),
+                (reservation_id, service_id, qty, total, created_date),
             )
         self.conn.commit()
 
@@ -87,3 +91,6 @@ class ServicesFunc:
             ORDER BY r.id DESC
         """).fetchall()
 
+    def remove_order(self, reservation_id: int):
+        self.conn.execute("DELETE FROM service_orders WHERE reservation_id=?", (reservation_id,))
+        self.conn.commit()

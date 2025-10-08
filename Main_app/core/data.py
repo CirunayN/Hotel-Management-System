@@ -8,4 +8,5 @@ class Reservation:
     room_type: str
     check_in: str
     check_out: str
+    price : int
 
