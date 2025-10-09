@@ -12,7 +12,7 @@ from Main_app.core.stylesheet import StyleShesh
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Hotel Management System")
+        self.setWindowTitle("Hotel Reservation and Services")
 
         container = QWidget()
         layout = QHBoxLayout(container)
